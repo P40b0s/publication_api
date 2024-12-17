@@ -1,10 +1,10 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use utilites::{Date, Url, http::Bytes, http::Uri, empty_string_as_none};
 use crate::{DocumentType, error::PublicationApiError, SignatoryAuthority};
 
 use super::deserialization::deserialize_date;
 ///Карточка документа получаемая при поиске на портале 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone, Serialize)]
 #[serde(rename_all="camelCase")]
 pub struct PublicationDocumentCard
 {
@@ -62,7 +62,7 @@ impl From<Bytes> for PublicationDocumentCard
 
 
 ///Список карточек документов получаемых при поиске на портале 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Serialize)]
 #[serde(rename_all="camelCase")]
 pub struct SearchResult
 {
@@ -87,7 +87,7 @@ impl From<Bytes> for SearchResult
 
 /// ответ на http://publication.pravo.gov.ru/api/Document?eoNumber=0001202406220019
 /// Полная карточка документа с портала опубликования, возможно получить только по id PublicationDocumentCard
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Serialize)]
 #[serde(rename_all="camelCase")]
 pub struct ExtendedPublicationDocumentCard
 {

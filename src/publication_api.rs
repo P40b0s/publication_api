@@ -221,10 +221,8 @@ impl PublicationDocumentCard
 mod tests
 {
     use std::time::Duration;
-
     use logger::StructLogger;
     use utilites::Date;
-
     pub use super::super::PublicationDocumentCard;
     use super::PublicationApi;
 

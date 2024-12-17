@@ -1,9 +1,9 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use utilites::http::Bytes;
 
 ///http://publication.pravo.gov.ru/api/SignatoryAuthorities?
 /// список всех органов
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Serialize)]
 #[serde(rename_all="camelCase")]
 pub struct SignatoryAuthority
 {
