@@ -4,7 +4,6 @@ mod models;
 mod error;
 mod document_type;
 mod signatory_authority;
-mod parsers;
 
 
 use utilites::Url;
