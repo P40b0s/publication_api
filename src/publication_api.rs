@@ -15,11 +15,11 @@ impl PublicationApi
 {
     fn client() -> HyperClient
     {
-        HyperClient::new_with_timeout(API.parse().unwrap(), 250, 800, 12).with_headers(Self::headers())
+        HyperClient::new_with_timeout(API.parse().unwrap(), 400, 1000, 12).with_headers(Self::headers())
     }
     fn png_client() -> HyperClient
     {
-        HyperClient::new_with_timeout(SITE.parse().unwrap(), 100, 250, 15).with_headers(Self::headers())
+        HyperClient::new_with_timeout(SITE.parse().unwrap(), 300, 500, 15).with_headers(Self::headers())
     }
     fn pdf_client() -> HyperClient
     {
@@ -117,6 +117,19 @@ impl PublicationApi
         client = client.add_path("DocumentTypes");
         let _p : Vec<(&str, &str)> = Vec::new();
         let value = client.get_with_params(&_p).await?;
+        let body = Self::code_error_check(value)?;
+        let resp: Vec<DocumentType> = serde_json::from_slice(&body)?;
+        Ok(resp)
+
+    }
+     /// список видов документов у конкретного принявшего органа
+    /// http://publication.pravo.gov.ru/api/DocumentTypes
+    pub async fn get_documents_types_by_signatory_authority(signatory_authority: &str) -> Result<Vec<DocumentType>, PublicationApiError>
+    {
+        let mut client = Self::client();
+        client = client.add_path("DocumentTypes");
+        let papams : Vec<(&str, &str)> = vec![("SignatoryAuthorityId", signatory_authority)];
+        let value = client.get_with_params(&papams).await?;
         let body = Self::code_error_check(value)?;
         let resp: Vec<DocumentType> = serde_json::from_slice(&body)?;
         Ok(resp)
@@ -266,6 +279,14 @@ mod tests
         let types  = PublicationApi::get_documents_types().await.unwrap();
         let organs  = PublicationApi::get_signatory_authorites().await.unwrap();
         logger::debug!("{} {:?} ----- {} {:?}", types.len(), types.first().unwrap(), organs.len(), organs.first().unwrap());
+    }
+
+    #[tokio::test]
+    async fn test_get_documents_types_by_signatory_authority()
+    {
+        StructLogger::new_default();
+        let types  = PublicationApi::get_documents_types_by_signatory_authority("8005d8c9-4b6d-48d3-861a-2a37e69fccb3").await.unwrap();
+        logger::debug!("{:?}",  types);
     }
     #[tokio::test]
     async fn test_one_year_request()
