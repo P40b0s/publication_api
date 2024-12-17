@@ -15,7 +15,7 @@ impl PublicationApi
 {
     fn client() -> HyperClient
     {
-        HyperClient::new_with_timeout(API.parse().unwrap(), 400, 1000, 12).with_headers(Self::headers())
+        HyperClient::new_with_timeout(API.parse().unwrap(), 1000, 3000, 12).with_headers(Self::headers())
     }
     fn png_client() -> HyperClient
     {
