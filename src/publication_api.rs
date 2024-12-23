@@ -160,6 +160,36 @@ impl PublicationApi
         let resp: ExtendedPublicationDocumentCard = serde_json::from_slice(&body)?;
         Ok(resp)
     }
+
+     /// получение первого документа (для оценки что у него за номер итд....)
+    ///http://95.173.157.131/api/Documents?SignatoryAuthorityId=8d31525e-fafc-4590-8580-422f588d20c9&DocumentTypes=2dddb344-d3e2-4785-a899-7aa12bd47b6f&pageSize=10&index=1
+    pub async fn get_first_document(sa: &str, doc_type: &str) -> Result<PublicationDocumentCard, PublicationApiError>
+    {
+        let mut client = Self::client();
+        client = client.add_path("Documents");
+        let params : Vec<(&str, &str)> = vec![
+            ("SignatoryAuthorityId", sa),
+            ("DocumentTypes", doc_type),
+            ("pageSize", "10"),
+            ("index", "1")
+        ];
+        let value = client.get_with_params(&params).await?;
+        let body = Self::code_error_check(value)?;
+        let resp: SearchResult = serde_json::from_slice(&body)?;
+        if let Some(first_item) = resp.items.into_iter().next()
+        {
+            Ok(first_item)
+        }
+        else 
+        {
+            Err(PublicationApiError::ApiError("Не найдено ни одного документа".to_owned()))
+        }
+    }
+
+
+   
+
+
     ///получение картинки
     /// http://publication.pravo.gov.ru/GetImage?documentId=dbf8d1c9-ed98-46ae-8cfb-1f7eb0fa066e&pageNumber=1
     pub  async fn get_image_by_id(id: &str, page: u32) -> Result<Bytes, PublicationApiError>
@@ -257,7 +287,7 @@ mod tests
     {
         StructLogger::new_default();
         //let u = PublicationApi::get_documents_list_from_date(Date::parse("01.04.2024").unwrap()).await.unwrap();
-        let mut d = PublicationDocumentCard { eo_number: "0001202406220019".to_owned(), has_svg: false, zip_file_length: None, publish_date_short:  Date::parse("2024-06-22T00:00:00").unwrap(), complex_name: "Федеральный закон от 22.06.2024 № 160-ФЗ\n \"О внесении изменений в статью 19 Федерального закона \"О крестьянском (фермерском) хозяйстве\" и Федеральный закон \"О развитии сельского хозяйства\"".to_owned(), pages_count: 4, curr_page: 0, pdf_file_length: 169841, jd_reg_number: None, jd_reg_date: None, title: "Федеральный закон от 22.06.2024 № 160-ФЗ<br /> \"О внесении изменений в статью 19 Федерального закона \"О крестьянском (фермерском) хозяйстве\" и Федеральный закон \"О развитии сельского хозяйства\"".to_owned(), view_date: Date::parse("2024-06-22T00:00:00").unwrap(), id: "118e71c6-7e90-495c-9afb-56b38edea17a".to_owned() };
+        let mut d = PublicationDocumentCard { eo_number: "0001202406220019".to_owned(), has_svg: false, zip_file_length: None, publish_date_short:  Date::parse("2024-06-22T00:00:00").unwrap(), complex_name: "Федеральный закон от 22.06.2024 № 160-ФЗ\n \"О внесении изменений в статью 19 Федерального закона \"О крестьянском (фермерском) хозяйстве\" и Федеральный закон \"О развитии сельского хозяйства\"".to_owned(), pages_count: 4, curr_page: 0, pdf_file_length: 169841, jd_reg_number: None, jd_reg_date: None, title: "Федеральный закон от 22.06.2024 № 160-ФЗ<br /> \"О внесении изменений в статью 19 Федерального закона \"О крестьянском (фермерском) хозяйстве\" и Федеральный закон \"О развитии сельского хозяйства\"".to_owned(), view_date: Date::parse("2024-06-22T00:00:00").unwrap(), id: "118e71c6-7e90-495c-9afb-56b38edea17a".to_owned(), signatory_authority_id: "".to_owned(), document_type_id: "".to_owned(), document_date: Date::parse("2024-06-22T00:00:00").unwrap(), number: "123".to_owned() };
         //let mut d = u[0].clone();
         let pdf = PublicationApi::get_pdf_by_eo_number(&d.eo_number).await.unwrap();
         std::fs::write([&d.eo_number, ".pdf"].concat(),  pdf);
@@ -308,6 +338,18 @@ mod tests
             &["2dddb344-d3e2-4785-a899-7aa12bd47b6f".to_owned()],
             Some("3b24703c-c62f-4027-99ac-9eee99180df5".to_owned()).as_ref(), None
         );
+        
+    }
+
+    #[tokio::test]
+    async fn test_get_first()
+    {
+        StructLogger::new_default();
+        let u = PublicationApi::get_first_document(
+            "225698f1-cfbc-4e42-9caa-32f9f7403211",
+            "0790e34b-784b-4372-884e-3282622a24bd"
+            ).await.unwrap();
+            logger::debug!("{:?}", u);
         
     }
 

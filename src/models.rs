@@ -49,7 +49,16 @@ pub struct PublicationDocumentCard
     pub view_date: Date,	
     /// GUID документа  
     /// "118e71c6-7e90-495c-9afb-56b38edea17a"
-    pub id: String 
+    pub id: String,
+    /// sa id
+    pub signatory_authority_id: String,
+    /// id типа документа
+    pub document_type_id: String,
+    #[serde(deserialize_with="deserialize_date")]
+    /// дата подписания документа
+    pub document_date: Date,
+    /// номер документа
+    pub number: String
 }
 impl From<Bytes> for PublicationDocumentCard
 {
