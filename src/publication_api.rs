@@ -87,12 +87,20 @@ impl PublicationApi
         let resp: SearchResult = serde_json::from_slice(&body)?;
         let mut result_vec = Vec::with_capacity(resp.items_total_count as usize);
         result_vec.extend(resp.items);
-        let percentage_mul = 100 / resp.pages_total_count;
+        let total = if resp.pages_total_count == 0
+        {
+            1
+        }
+        else
+        {
+            resp.pages_total_count
+        };
+        let percentage_mul = 100 / total;
         if let Some(c) = sender.as_ref()
         {
             let _ = c.send(percentage_mul * 1).await;
         }
-        for page in (resp.current_page+1)..=resp.pages_total_count
+        for page in (resp.current_page+1)..=total
         {
             let params = Self::get_params(date_from, date_to, doc_types, signatory_authority, Some(page));
             let value = client.get_with_params(&params).await?;
