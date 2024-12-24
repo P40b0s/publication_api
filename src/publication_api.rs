@@ -4,8 +4,8 @@ use utilites::{http::{Bytes, HyperClient, Uri}, Date, Url};
 use crate::{DocumentType, SignatoryAuthority};
 use crate::{error::PublicationApiError, ExtendedPublicationDocumentCard};
 use super::models::{PublicationDocumentCard, SearchResult};
-const API: &str = "http://95.173.157.131:80/api/";
-const SITE: &str = "http://95.173.157.131:80/";
+const API: &str = "http://publication.pravo.gov.ru/api/";
+const SITE: &str = "http://publication.pravo.gov.ru/";
 ///Вроде бы при увеличении количества попыток, все заработало
 pub struct PublicationApi
 {
@@ -15,7 +15,7 @@ impl PublicationApi
 {
     fn client() -> HyperClient
     {
-        HyperClient::new_with_timeout(API.parse().unwrap(), 1000, 3000, 12).with_headers(Self::headers())
+        HyperClient::new_with_timeout(API.parse().unwrap(), 5000, 10000, 12).with_headers(Self::headers())
     }
     fn png_client() -> HyperClient
     {
@@ -29,11 +29,11 @@ impl PublicationApi
     {
         let mut h= Vec::new();
         h.push((HOST, "publication.pravo.gov.ru".to_owned()));
-        h.push((USER_AGENT, "Mozilla/5.0 (X11; Linux x86_64; rv:127.0) Gecko/20100101 Firefox/127.0".to_owned()));
+        h.push((USER_AGENT, "Mozilla/5.0 (X11; Linux x86_64; rv:133.0) Gecko/20100101 Firefox/133.0".to_owned()));
         h.push((ACCEPT, "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8".to_owned()));
         h.push((ACCEPT_ENCODING, "gzip, deflate".to_owned()));
         h.push((ACCEPT_LANGUAGE, "ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3".to_owned()));
-        h.push((REFERER, "http:://publication.pravo.gov.ru".to_owned()));
+        //h.push((REFERER, "http:://publication.pravo.gov.ru".to_owned()));
         h.push((UPGRADE_INSECURE_REQUESTS, "1".to_owned()));
         h
     }
@@ -264,7 +264,9 @@ mod tests
 {
     use std::time::Duration;
     use logger::StructLogger;
-    use utilites::Date;
+    use utilites::{http::{Bytes, HeaderName, HyperClient, StatusCode, Uri, ACCEPT, ACCEPT_ENCODING, ACCEPT_LANGUAGE, HOST, UPGRADE_INSECURE_REQUESTS, USER_AGENT}, Date};
+    use crate::PublicationApiError;
+
     pub use super::super::PublicationDocumentCard;
     use super::PublicationApi;
 
@@ -385,6 +387,82 @@ mod tests
             logger::debug!("{:?}", u);
         
     }
+
+
+
+
+
+        ///Вроде бы при увеличении количества попыток, все заработало
+pub struct TestApi
+{
+    
+}
+impl TestApi
+{
+    fn client() -> HyperClient
+    {
+        let uri = Uri::builder()
+             .scheme("https")
+             
+             .authority("159.89.140.122")
+             .path_and_query("/")
+             .build()
+             .unwrap();
+        HyperClient::new_with_timeout(uri, 5000, 10000, 12).with_headers(Self::headers())
+    }
+    fn headers() -> Vec<(HeaderName, String)>
+    {
+        let mut h= Vec::new();
+        h.push((HOST, "fake-json-api.mock.beeceptor.com".to_owned()));
+        h.push((USER_AGENT, "Mozilla/5.0 (X11; Linux x86_64; rv:133.0) Gecko/20100101 Firefox/133.0".to_owned()));
+        h.push((ACCEPT, "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8".to_owned()));
+        h.push((ACCEPT_ENCODING, "gzip, deflate".to_owned()));
+        h.push((ACCEPT_LANGUAGE, "ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3".to_owned()));
+        //h.push((REFERER, "http:://publication.pravo.gov.ru".to_owned()));
+        h.push((UPGRADE_INSECURE_REQUESTS, "1".to_owned()));
+        h
+    }
+
+    ///Проверка что пришел код 200 на запрос
+    fn code_error_check(response: (StatusCode, Bytes)) -> Result<Bytes, PublicationApiError>
+    {
+        if response.0 != utilites::http::StatusCode::OK
+        {
+            let e = ["Сервер ответил кодом ", response.0.as_str(), " ожидался код 200"].concat();
+            logger::warn!("{}", &e);
+            return Err(PublicationApiError::ApiError(e));
+        }
+        else 
+        {
+            Ok(response.1)
+        }
+    }
+    pub async fn get_companies() -> Result<String, PublicationApiError>
+    {
+        let mut client = Self::client();
+        client = client.add_path("companies");
+        let _p : Vec<(&str, &str)> = Vec::new();
+        let value = client.get_with_params(&_p).await?;
+        let body = Self::code_error_check(value)?;
+        //let resp: Vec<DocumentType> = serde_json::from_slice(&body)?;
+        let str = String::from_utf8(body.to_vec()).unwrap();
+        Ok(str)
+
+    }
+    
+}
+
+    #[tokio::test]
+    async fn test_client_on_test_api()
+    {
+        StructLogger::new_default();
+        let u = TestApi::get_companies().await.unwrap();
+        logger::debug!("{}", u);
+        
+    }
+
+
+
 
 
     //http://publication.pravo.gov.ru/Documents/search?pageSize=30&index=1&SignatoryAuthorityId=3b24703c-c62f-4027-99ac-9eee99180df5&DocumentTypes=2dddb344-d3e2-4785-a899-7aa12bd47b6f&PublishDateSearchType=0&PublishDateFrom=01.01.2024&PublishDateTo=13.12.2024&NumberSearchType=0&DocumentDateSearchType=0&JdRegSearchType=0&SortedBy=6&SortDestination=1
