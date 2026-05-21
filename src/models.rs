@@ -175,3 +175,28 @@ impl From<Bytes> for ExtendedPublicationDocumentCard
     }
 }
 
+impl From<ExtendedPublicationDocumentCard> for PublicationDocumentCard
+{
+    fn from(extended: ExtendedPublicationDocumentCard) -> Self {
+        PublicationDocumentCard {
+            eo_number: extended.eo_number,
+            has_svg: extended.has_svg,
+            zip_file_length: extended.zip_file_length,
+            publish_date_short: extended.publish_date_short,
+            complex_name: extended.complex_name.clone(),
+            pages_count: extended.pages_count,
+            curr_page: 0,
+            pdf_file_length: extended.pdf_file_length,
+            jd_reg_number: extended.jd_reg_number.map(|n| n.to_string()),
+            jd_reg_date: extended.jd_reg_date,
+            title: extended.complex_name,
+            view_date: extended.view_date,
+            id: extended.id,
+            signatory_authority_id: extended.signatory_authority_id,
+            document_type_id: extended.document_type_id,
+            document_date: extended.document_date,
+            number: extended.number,
+        }
+    }
+}
+

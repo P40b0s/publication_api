@@ -28,13 +28,9 @@ pub trait PublicationApiClient
     fn get_first_document(&self, sa: &str, doc_type: &str) -> impl std::future::Future<Output = anyhow::Result<Option<PublicationDocumentCard>>> + Send;
     /// подробная карточка документа 
     ///  http://publication.pravo.gov.ru/api/Document?eoNumber=0001202406220019
-    fn get_document_extended_card(&self, eo_number: &str) -> impl std::future::Future<Output = anyhow::Result<ExtendedPublicationDocumentCard>> + Send;
-    /// Получить карточку документа по id
-    fn get_document_card(&self, id: &str) -> impl std::future::Future<Output = anyhow::Result<PublicationDocumentCard>> + Send;
+    fn get_document_by_eo_number(&self, eo_number: &str) -> impl std::future::Future<Output = anyhow::Result<PublicationDocumentCard>> + Send;
     /// Получить расширенную карточку документа по id
     fn get_extended_document_card(&self, id: &str) -> impl std::future::Future<Output = anyhow::Result<ExtendedPublicationDocumentCard>> + Send;
-    /// Получить список документов по номеру электронного опубликования
-    fn search_by_eo_number(&self, eo_number: &str) -> impl std::future::Future<Output = anyhow::Result<SearchResult>> + Send;
     /// Получить список органов подписи
     fn get_signatory_authorites(&self) -> impl std::future::Future<Output = anyhow::Result<Vec<SignatoryAuthority>>> + Send;
     /// Получить список типов документов

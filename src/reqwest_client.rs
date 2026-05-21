@@ -1,5 +1,3 @@
-use bytes::Bytes;
-use reqwest::{Client, retry};
 use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
 use reqwest_retry::{RetryTransientMiddleware, policies::ExponentialBackoff};
 use utilites::Date;
@@ -158,7 +156,7 @@ impl PublicationApiClient for ReqwestPublicationApiClient
         Ok(body.items.into_iter().next())   
     }
     
-   async fn get_document_extended_card(&self, eo_number: &str) -> anyhow::Result<crate::ExtendedPublicationDocumentCard> 
+   async fn get_document_by_eo_number(&self, eo_number: &str) -> anyhow::Result<crate::PublicationDocumentCard> 
    {
         let url = [Self::API_URL, "Document?"].concat();
         let mut url = reqwest::Url::parse(&url)?;
@@ -169,20 +167,23 @@ impl PublicationApiClient for ReqwestPublicationApiClient
             .await?
             .json()
             .await?;
-        Ok(body)
+        Ok(crate::PublicationDocumentCard::from(body))
     }
 
-    async fn get_document_card(&self, id: &str) -> anyhow::Result<PublicationDocumentCard> {
-        todo!()
+    async fn get_extended_document_card(&self, id: &str) -> anyhow::Result<crate::ExtendedPublicationDocumentCard> 
+    {
+        let url = [Self::API_URL, "Document?"].concat();
+        let mut url = reqwest::Url::parse(&url)?;
+        url.query_pairs_mut().append_pair("id", id);
+        let body: crate::ExtendedPublicationDocumentCard = self.client
+            .get(url)
+            .send()
+            .await?
+            .json()
+            .await?;
+        Ok(body)
     }
     
-    async fn get_extended_document_card(&self, id: &str) -> anyhow::Result<crate::ExtendedPublicationDocumentCard> {
-        todo!()
-    }
-    
-    async fn search_by_eo_number(&self, eo_number: &str) -> anyhow::Result<SearchResult> {
-        todo!()
-    }
     async fn get_signatory_authorites(&self) -> anyhow::Result<Vec<crate::SignatoryAuthority>> 
     {
         let url = [Self::API_URL, "SignatoryAuthorities"].concat();
