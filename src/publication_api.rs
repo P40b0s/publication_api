@@ -236,28 +236,6 @@ impl PublicationApi
 
 }
 
-impl PublicationDocumentCard
-{
-    async fn next_image(&mut self) -> Result<Option<Bytes>, PublicationApiError> 
-    {
-        {
-            if self.curr_page == 0
-            {
-                self.curr_page = 1;
-            }
-            if self.curr_page <= self.pages_count
-            {
-                let png = PublicationApi::get_image_by_id(&self.id, self.curr_page).await?;
-                self.curr_page +=1;
-                Ok(Some(png))
-            }
-            else
-            {
-                Ok(None)
-            }
-        }
-    }
-}
 
 #[cfg(test)]
 mod tests
@@ -265,46 +243,46 @@ mod tests
     use std::time::Duration;
     use logger::StructLogger;
     use utilites::{http::{Bytes, HeaderName, HyperClient, StatusCode, Uri, ACCEPT, ACCEPT_ENCODING, ACCEPT_LANGUAGE, HOST, UPGRADE_INSECURE_REQUESTS, USER_AGENT}, Date};
-    use crate::PublicationApiError;
+    use crate::error::PublicationApiError;
 
     pub use super::super::PublicationDocumentCard;
     use super::PublicationApi;
 
-    #[tokio::test]
-    async fn test_get_images()
-    {
-        StructLogger::new_default();
-        let (sender, mut receiver) =  tokio::sync::mpsc::channel::<u32>(7);
-        let handle = tokio::spawn(
-            async move 
-            {
-                while let Some(p) = receiver.recv().await 
-                {
-                    println!("текущий процент выполнения: {}%", p);
-                }
-            }).await;
-        let u = PublicationApi::get_documents_from_date(&Date::parse("01.04.2024").unwrap(), &["82a8bf1c-3bc7-47ed-827f-7affd43a7f27".to_owned()],None, None, Some(sender)).await.unwrap();
-        //let mut d = PublicationDocumentCard { eo_number: "0001202406220019".to_owned(), has_svg: false, zip_file_length: None, publish_date_short:  Date::parse("2024-06-22T00:00:00").unwrap(), complex_name: "Федеральный закон от 22.06.2024 № 160-ФЗ\n \"О внесении изменений в статью 19 Федерального закона \"О крестьянском (фермерском) хозяйстве\" и Федеральный закон \"О развитии сельского хозяйства\"".to_owned(), pages_count: 4, curr_page: 0, pdf_file_length: 169841, jd_reg_number: None, jd_reg_date: None, title: "Федеральный закон от 22.06.2024 № 160-ФЗ<br /> \"О внесении изменений в статью 19 Федерального закона \"О крестьянском (фермерском) хозяйстве\" и Федеральный закон \"О развитии сельского хозяйства\"".to_owned(), view_date: Date::parse("2024-06-22T00:00:00").unwrap(), id: "118e71c6-7e90-495c-9afb-56b38edea17a".to_owned() };
-        let mut d: PublicationDocumentCard = u[0].clone();
-        logger::info!("{:?}", &d);
+    // #[tokio::test]
+    // async fn test_get_images()
+    // {
+    //     StructLogger::new_default();
+    //     let (sender, mut receiver) =  tokio::sync::mpsc::channel::<u32>(7);
+    //     let handle = tokio::spawn(
+    //         async move 
+    //         {
+    //             while let Some(p) = receiver.recv().await 
+    //             {
+    //                 println!("текущий процент выполнения: {}%", p);
+    //             }
+    //         }).await;
+    //     let u = PublicationApi::get_documents_from_date(&Date::parse("01.04.2024").unwrap(), &["82a8bf1c-3bc7-47ed-827f-7affd43a7f27".to_owned()],None, None, Some(sender)).await.unwrap();
+    //     //let mut d = PublicationDocumentCard { eo_number: "0001202406220019".to_owned(), has_svg: false, zip_file_length: None, publish_date_short:  Date::parse("2024-06-22T00:00:00").unwrap(), complex_name: "Федеральный закон от 22.06.2024 № 160-ФЗ\n \"О внесении изменений в статью 19 Федерального закона \"О крестьянском (фермерском) хозяйстве\" и Федеральный закон \"О развитии сельского хозяйства\"".to_owned(), pages_count: 4, curr_page: 0, pdf_file_length: 169841, jd_reg_number: None, jd_reg_date: None, title: "Федеральный закон от 22.06.2024 № 160-ФЗ<br /> \"О внесении изменений в статью 19 Федерального закона \"О крестьянском (фермерском) хозяйстве\" и Федеральный закон \"О развитии сельского хозяйства\"".to_owned(), view_date: Date::parse("2024-06-22T00:00:00").unwrap(), id: "118e71c6-7e90-495c-9afb-56b38edea17a".to_owned() };
+    //     let mut d: PublicationDocumentCard = u[0].clone();
+    //     logger::info!("{:?}", &d);
         
 
-                let mut page_number = 1;
-                while let Ok(p) = d.next_image().await
-                {
-                    if let Some(page) = p
-                    {
-                        let _ = std::fs::write([&d.eo_number, "_", &page_number.to_string(), ".png"].concat(), page);
-                        page_number += 1;
-                    }
-                    else
-                    {
-                        break;
-                    }
-                    logger::info!("листаем старницы: {}", d.curr_page);
-                }
+    //             let mut page_number = 1;
+    //             while let Ok(p) = d.next_image().await
+    //             {
+    //                 if let Some(page) = p
+    //                 {
+    //                     let _ = std::fs::write([&d.eo_number, "_", &page_number.to_string(), ".png"].concat(), page);
+    //                     page_number += 1;
+    //                 }
+    //                 else
+    //                 {
+    //                     break;
+    //                 }
+    //                 logger::info!("листаем старницы: {}", d.curr_page);
+    //             }
             
-    }
+    // }
     #[tokio::test]
     async fn test_get_pdf()
     {

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use utilites::{Date, Url, http::Bytes, http::Uri, empty_string_as_none};
-use crate::{DocumentType, error::PublicationApiError, SignatoryAuthority};
+use crate::{DocumentType, SignatoryAuthority, client::PublicationApiClient, error::PublicationApiError};
 
 use super::deserialization::deserialize_date;
 ///Карточка документа получаемая при поиске на портале 
@@ -60,11 +60,35 @@ pub struct PublicationDocumentCard
     /// номер документа
     pub number: String
 }
+
 impl From<Bytes> for PublicationDocumentCard
 {
     fn from(value: Bytes) -> Self 
     {
         serde_json::from_slice(&value).unwrap()
+    }
+}
+
+impl PublicationDocumentCard
+{
+    pub async fn next_image<C: PublicationApiClient>(&mut self, client: &C) -> anyhow::Result<Option<Bytes>> 
+    {
+        {
+            if self.curr_page == 0
+            {
+                self.curr_page = 1;
+            }
+            if self.curr_page <= self.pages_count
+            {
+                let png = client.get_image_by_id(&self.id, self.curr_page).await?;
+                self.curr_page +=1;
+                Ok(Some(png))
+            }
+            else
+            {
+                Ok(None)
+            }
+        }
     }
 }
 
