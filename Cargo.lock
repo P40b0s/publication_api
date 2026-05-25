@@ -1143,17 +1143,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "logger"
-version = "0.1.2"
-source = "git+https://github.com/P40b0s/logger.git#52871c8a52235e7ac577bb8edeae3c09ec16feff"
-dependencies = [
- "chrono",
- "colored",
- "fern",
- "log",
-]
-
-[[package]]
 name = "lru-slab"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1383,7 +1372,6 @@ version = "0.1.5"
 dependencies = [
  "anyhow",
  "bytes",
- "logger 0.1.2 (git+https://github.com/P40b0s/logger.git)",
  "reqwest",
  "reqwest-middleware",
  "reqwest-retry",
@@ -2487,7 +2475,7 @@ dependencies = [
  "hyper",
  "hyper-rustls",
  "hyper-util",
- "logger 0.1.2 (git+https://github.com/P40b0s/logger.git?branch=main)",
+ "logger",
  "rand 0.8.5",
  "rustls",
  "serde",

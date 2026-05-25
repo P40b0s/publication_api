@@ -15,23 +15,3 @@ pub use models::{ExtendedPublicationDocumentCard, PublicationDocumentCard, Searc
 pub use signatory_authority::SignatoryAuthority;
 pub use client::PublicationApiClient;
 pub use reqwest_client::ReqwestPublicationApiClient;
-//use utilites::Url;
-
-#[cfg(test)]
-mod tests {
-
-    use logger::StructLogger;
-    use utilites::{Date, Url};
-
-    use super::{SearchResult, error::PublicationApiError};
-
-    #[tokio::test]
-    async fn test_api() {
-        StructLogger::new_default();
-    }
-
-    #[tokio::test]
-    async fn test_api_1() {
-        StructLogger::new_default();
-    }
-}

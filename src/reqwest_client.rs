@@ -1,6 +1,7 @@
 use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
 use reqwest_retry::{RetryTransientMiddleware, policies::ExponentialBackoff};
 use utilites::Date;
+use tracing::debug;
 
 use crate::{PublicationDocumentCard, SearchResult, SignatoryAuthority, client::PublicationApiClient};
 
@@ -81,6 +82,7 @@ impl PublicationApiClient for ReqwestPublicationApiClient
         let url = [Self::API_URL, "Documents?"].concat();
         let mut url = reqwest::Url::parse(&url)?;
         Self::apply_params(&mut url, date_from, date_to, doc_types, signatory_authority, page_size, page_number);
+        debug!("URL: {}", url);
         let body: SearchResult = self.client
             .get(url.clone())
             .send()
