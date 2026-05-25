@@ -11,10 +11,16 @@ pub trait PublicationApiClient
         date_from: Option<&Date>,
         date_to: Option<&Date>,
         doc_types: &[String],
-        signatory_authority: Option<&[String]>,
+        signatory_authority: Option<&String>,
         page_number: Option<u32>,
         page_size: Option<u32>,
         sender: Option<tokio::sync::mpsc::Sender<u32>>) -> impl std::future::Future<Output = anyhow::Result<Vec<PublicationDocumentCard>>> + Send;
+
+    fn search_documents(&self,
+        publication_date: &Date,
+        signatory_authority: &String,
+        page_size: Option<u32>
+    ) -> impl std::future::Future<Output = anyhow::Result<Vec<PublicationDocumentCard>>> + Send;
     
     /// Получить PDF по номеру электронного опубликования
     /// загрузка pdf http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202308040071"

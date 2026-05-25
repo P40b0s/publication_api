@@ -27,7 +27,7 @@ impl ReqwestPublicationApiClient
         date_from: Option<&Date>,
         date_to: Option<&Date>,
         doc_types: &[String],
-        signatory_authority: Option<&[String]>,
+        signatory_authority: Option<&String>,
         page_size: Option<u32>,
         page_number: Option<u32>)
     {
@@ -37,10 +37,7 @@ impl ReqwestPublicationApiClient
         }
         if let Some(sa) = signatory_authority
         {
-            for sa in sa
-            {
-                url.query_pairs_mut().append_pair("SignatoryAuthorityId", sa);
-            }
+            url.query_pairs_mut().append_pair("SignatoryAuthorityId", sa);
         }
         if let Some(df) = date_from
         {
@@ -74,7 +71,7 @@ impl PublicationApiClient for ReqwestPublicationApiClient
         date_from: Option<&Date>,
         date_to: Option<&Date>,
         doc_types: &[String],
-        signatory_authority: Option<&[String]>,
+        signatory_authority: Option<&String>,
         page_number: Option<u32>,
         page_size: Option<u32>,
         sender: Option<tokio::sync::mpsc::Sender<u32>>) -> anyhow::Result<Vec<PublicationDocumentCard>>
@@ -123,6 +120,27 @@ impl PublicationApiClient for ReqwestPublicationApiClient
         }
         Ok(result_vec)
     }
+
+    async fn search_documents(&self,
+        publication_date: &Date,
+        signatory_authority: &String,
+        page_size: Option<u32>
+    ) -> anyhow::Result<Vec<PublicationDocumentCard>>
+    {
+        let url = [Self::API_URL, "Documents?"].concat();
+        let mut url = reqwest::Url::parse(&url)?;
+        url.query_pairs_mut().append_pair("SignatoryAuthorityId", signatory_authority);
+        url.query_pairs_mut().append_pair("PeriodType", "day");
+        url.query_pairs_mut().append_pair("Date", &publication_date.format(utilites::DateFormat::DotDate));
+        url.query_pairs_mut().append_pair("PageSize", page_size.unwrap_or(200).to_string().as_str());
+        let body: SearchResult = self.client
+            .get(url.clone())
+            .send()
+            .await?
+            .json()
+            .await?;
+        Ok(body.items)
+    }
     
     async fn get_pdf_by_eo_number(&self, eo_number: &str) -> anyhow::Result<bytes::Bytes> 
     {
@@ -148,7 +166,7 @@ impl PublicationApiClient for ReqwestPublicationApiClient
     {
         let url = [Self::API_URL, "Documents?"].concat();
         let mut url = reqwest::Url::parse(&url)?;
-        Self::apply_params(&mut url, None, None, &vec![doc_type.to_owned()], Some(&vec![sa.to_owned()]), Some(1), Some(1));
+        Self::apply_params(&mut url, None, None, &vec![doc_type.to_owned()], Some(&sa.to_owned()), Some(1), Some(1));
         let body: SearchResult = self.client
             .get(url)
             .send()
@@ -232,8 +250,8 @@ use super::*;
         let date_from = Date::parse("01.01.2023").unwrap();
         let date_to = Date::parse("31.12.2023").unwrap();
         let doc_types = vec!["0790e34b-784b-4372-884e-3282622a24bd".to_owned()];
-        let signatory_authority = Some(vec!["225698f1-cfbc-4e42-9caa-32f9f7403211".to_owned()]);
-        let result = client.get_documents(Some(&date_from), Some(&date_to), &doc_types, signatory_authority.as_ref().map(|v| v.as_slice()), None, None, None).await.unwrap();
+        let signatory_authority = Some("225698f1-cfbc-4e42-9caa-32f9f7403211".to_owned());
+        let result = client.get_documents(Some(&date_from), Some(&date_to), &doc_types, signatory_authority.as_ref(), None, None, None).await.unwrap();
         info!("Total documents: {}", result.len());
         assert!(!result.is_empty());
     }
