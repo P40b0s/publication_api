@@ -5,8 +5,6 @@ use crate::{DocumentType, ExtendedPublicationDocumentCard, PublicationDocumentCa
 
 pub trait PublicationApiClient
 {
-    const BASE_URL: &'static str;
-    const API_URL: &'static str;
     fn get_documents(&self,
         date_from: Option<&Date>,
         date_to: Option<&Date>,
